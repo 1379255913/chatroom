@@ -24,7 +24,9 @@ def getLoginDetails():    #获取用户登录状态
     if 'email' not in session:
         loggedIn = False
         userName = 'please sign in'
+        print(2)
     else:
+        print(1)
         loggedIn = True
         sql = "SELECT user_name FROM chatroom.users WHERE email = %s"
         params = [session['email']]
@@ -56,9 +58,11 @@ def login():
         if is_valid(email, str(password)):
             session['email'] = email
             flash('登录成功')
+            print('yes')
             return redirect(url_for('index'))
         else:
             error = 'Invalid UserId / Password'
+            print('no1')
             flash('登录失败')
             return render_template('login.html', error=error)
     else:
@@ -82,18 +86,18 @@ def register():
             flash('账号已存在，请登录')
             return render_template("login.html")
         else:
-            Ino = gengenerateID()
-            sql = "select * from Issue where Ino = '%s'" % Ino
-            params=[Ino]
-            result=query.query(sql,params)
+            # Ino = gengenerateID()
+            # sql = "select * from Issue where Ino = '%s'" % Ino
+            # params=[Ino]
+            # result=query.query(sql,params)
             # 如果result不为空，即存在该ID，就一直生成128位随机ID,直到不重复位置
-            while result is not None:
-                Ino = gengenerateID()
-                sql = "select * from Issue where Ino = '%s'" % Ino
-                params = [Ino]
-                result = query.query(sql, params)
-            sql = 'INSERT INTO chatroom.users (user_id,email,password,user_name,avatar_url) VALUES (%s,%s,%s,%s,%s)'
-            params = [Ino,email,hashlib.md5(password.encode()).hexdigest(),name,'/static/images/001.jpg']
+            # while result is not None:
+            #     Ino = gengenerateID()
+            #     sql = "select * from Issue where Ino = '%s'" % Ino
+            #     params = [Ino]
+            #     result = query.query(sql, params)
+            sql = 'INSERT INTO chatroom.users (email,password,user_name,avatar_url) VALUES (%s,%s,%s,%s)'
+            params = [email,hashlib.md5(password.encode()).hexdigest(),name,'/static/images/001.jpg']
             msg = query.update(sql,params)
             if msg == 'Changed successfully':
                 flash('注册成功')

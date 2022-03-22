@@ -98,7 +98,7 @@
                         <div class="row">
 
                             <div class="col-md-9 ">
-                                <div class="chat-discussion">
+                                <div class="chat-discussion" id="divId">
                                     {% if message %}
                                     {% for row in message %}
                                     <div class="chat-message left">
@@ -189,10 +189,11 @@
 <script src="https://cdn.bootcdn.net/ajax/libs/socket.io/2.3.1/socket.io.js"></script>
 <script type="text/javascript" charset="utf-8">
     var  filepath;
+    var e=document.getElementById("divId");
     var log = function() {
       console.log.apply(console, arguments)
     }
-
+    e.scrollTop=e.scrollHeight;
     var socket;
     var test=null;
     var current_channel = ''
@@ -230,6 +231,7 @@
                 else{
                  $(".chat-discussion").append("<div class='chat-message left'> <img class='message-avatar' src="+ avatar_url +" alt='' > <div class='message'><a class='message-author' > "+Username+"</a> <span class='message-date'>"+create_time+" </span><span class='message-content'>"+text+"</span> </div> </div>");
             }
+            e.scrollTop=e.scrollHeight;
         });
 
 
