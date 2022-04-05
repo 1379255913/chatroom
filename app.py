@@ -1,5 +1,6 @@
+import gevent
 from gevent import monkey
-monkey.patch_all(select=False)
+monkey.patch_all()
 import datetime
 import hashlib
 from flask import Flask, session, request, redirect, url_for, render_template, flash
@@ -175,6 +176,7 @@ def Iconnect():
 def avatar_url(information):
     email = session['email']
     avatar_url = information.get('avatar_url')
+    avatar_url = "/"+avatar_url.split("/", 3)[-1]
     sql = "UPDATE chatroom.users SET avatar_url = %s WHERE email = %s "
     params = [avatar_url,email]
     msg = query.update(sql, params)

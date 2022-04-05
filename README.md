@@ -1,10 +1,11 @@
-1.安装项目所需依赖，命令输入
--pip install -r requirements.txt
-
-2.创建数据库，一个users表，一个message表,表结构特别简单，自己创建吧；
-users：userid(int);email(varchar);password(varchar);user_name(varchar);avatar_url(varchar)存头像路径：
-message表：message_id（int）;content(varchar);create_time（timestamp）默认根据当前时间戳更新；user_id（int）;
-
-3.把query.py的数据库配置改为你自己的数据库配置
-
-4.-运行 app.py
+# 西二在线第五轮作业
+本项目为网上聊天系统
+## 实现框架
+本项目前端采用HTML/CSS/JS/Bootstrap进行开发，数据库采用MySQL,服务器端采用Python进行开发，采用Flask框架。
+## 项目功能
+本次的项目是一个网上聊天室，实现的功能如下：  
+    1. 注册与登录，修改头像  
+    2. 私聊  
+    3. 群聊  
+    4. 同步历史聊天记录  
+    5. 发送表情 
