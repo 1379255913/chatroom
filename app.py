@@ -1,3 +1,5 @@
+import random
+
 import gevent
 from gevent import monkey
 monkey.patch_all()
@@ -20,7 +22,7 @@ app.config.update({     #配置APP模块
 socketio = SocketIO(cors_allowed_origins="*") #防止出问题
 socketio.init_app(app)   #创建socket实例
 user_dict = {}
-
+basedir = os.path.abspath(os.path.dirname(__file__))
 def getLoginDetails():    #获取用户登录状态
     if 'email' not in session:
         loggedIn = False
@@ -45,6 +47,14 @@ def is_valid(email, password):
             return True
     return False
 
+
+def create_uuid():  # 生成唯一的图片的名称字符串，防止图片显示时的重名问题
+    nowTime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")  # 生成当前时间
+    randomNum = random.randint(0, 100)  # 生成的随机整数n，其中0<=n<=100
+    if randomNum <= 10:
+        randomNum = str(0) + str(randomNum)
+    uniqueNum = str(nowTime) + str(randomNum)
+    return uniqueNum
 #登录
 @app.route("/", methods = ['POST', 'GET'])
 @app.route("/login", methods = ['POST', 'GET'])
@@ -133,7 +143,7 @@ def chatroom():
         return redirect(url_for('login'))
     else:
         loggedIn, userName = getLoginDetails()
-        sql = "SELECT messages.content,messages.create_time,users.user_name,users.avatar_url,messages.user_id FROM chatroom.messages,chatroom.users where messages.user_id = users.user_id and messages.chatroom_name='chatroom' order by messages.create_time"
+        sql = "SELECT messages.content,messages.create_time,users.user_name,users.avatar_url,messages.user_id,messages.photo FROM chatroom.messages,chatroom.users where messages.user_id = users.user_id and messages.chatroom_name='chatroom' order by messages.create_time"
         message = query.query_no(sql)
         sql = "SELECT user_name,users.avatar_url FROM chatroom.users"
         users = query.query_no(sql)
@@ -152,7 +162,7 @@ def private(Ino):
         print(t)
         Ino='/private/'+Ino
         loggedIn, userName = getLoginDetails()
-        sql = "SELECT messages.content,messages.create_time,users.user_name,users.avatar_url,messages.user_id FROM chatroom.messages,chatroom.users where messages.user_id = users.user_id and messages.chatroom_name='%s' order by messages.create_time" % Ino
+        sql = "SELECT messages.content,messages.create_time,users.user_name,users.avatar_url,messages.user_id,messages.photo FROM chatroom.messages,chatroom.users where messages.user_id = users.user_id and messages.chatroom_name='%s' order by messages.create_time" % Ino
         message = query.query_no(sql)
         sql = "SELECT user_name,users.avatar_url FROM chatroom.users WHERE user_id='%s' or user_id='%s'" % (t[0],t[1])
         users = query.query_no(sql)
@@ -160,7 +170,7 @@ def private(Ino):
         sql = "SELECT avatar_url FROM chatroom.users WHERE email = %s"
         params = [session['email']]
         avatar_url = query.query(sql, params)
-        return render_template("profile.html",userName = userName,message = message,users = users,avatar_url = avatar_url)
+        return render_template("profile.html",userName = userName,message = message,users = users,avatar_url = avatar_url,)
 
 
 
@@ -212,6 +222,13 @@ class MyCustomNamespace(Namespace):
         text = information.get('text')
         user_name = session.get('user')  # 获取用户名称
         chatroom_name = information.get('chatroom')
+        photo=information.get('photo')
+        file_path=""
+        if photo:
+            print("接收到了图片")
+            file_path = "/static/images/" + create_uuid() + '.jpg'
+            with open(basedir+file_path, 'wb+') as f:
+                f.write(photo)
         sql = "SELECT user_id FROM chatroom.users WHERE email = %s"
         params = [session['email']]
         print(params)
@@ -219,8 +236,8 @@ class MyCustomNamespace(Namespace):
         print(user_id)
         create_time = datetime.datetime.now()
         create_time = datetime.datetime.strftime(create_time, '%Y-%m-%d %H:%M:%S')
-        sql = 'INSERT INTO chatroom.messages (chatroom_name,content,user_id,create_time) VALUES (%s,%s,%s,%s)'
-        params = [chatroom_name, text, user_id, create_time]
+        sql = 'INSERT INTO chatroom.messages (chatroom_name,content,user_id,create_time,photo) VALUES (%s,%s,%s,%s,%s)'
+        params = [chatroom_name, text, user_id, create_time, file_path]
         query.update(sql, params)  # 将聊天信息插入数据库，更新数据库
         sql = "SELECT avatar_url FROM chatroom.users WHERE email = %s"
         params = [session['email']]
@@ -230,6 +247,7 @@ class MyCustomNamespace(Namespace):
             'user_name': user_name,
             'text': text,
             'create_time': create_time,
+            'photo': file_path,
             'avatar_url': avatar_url,
         }, broadcast=True)
 socketio.on_namespace(MyCustomNamespace('/chatroom'))

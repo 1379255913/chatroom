@@ -106,7 +106,11 @@
                                         <div class="message">
                                             <a class="message-author" > {{ row[2] }} </a>
                                             <span class="message-date">  {{ row[1]}} </span>
+                                            {% if row[5] %}
+                                            <span class="message-content"><img src={{ row[5] }} class='imgchat' style='height: 100px;weight:100px'/>{{ row[0] }}</span>
+                                            {% else %}
                                             <span class="message-content">{{ row[0] }}</span>
+                                            {% endif %}
                                         </div>
                                     </div>
                                  {% endfor %}
@@ -197,7 +201,8 @@
     var socket;
 
     var current_channel = ''
-
+    var reader = new FileReader();
+    var binaryString=""
     var clear_board = function() {
       $('.enter').val('');
       log('清空')
@@ -220,10 +225,11 @@
             Username = data.user_name
             text = data.text
             create_time = data.create_time
+            photo = data.photo
             var avatar_url = data.avatar_url
             log(Username + ':' + text)
-            if(filepath){
-                 $(".chat-discussion").append("<div class='chat-message left'> <img class='message-avatar' src="+ avatar_url +" alt='' > <div class='message'><a class='message-author' > "+Username+"</a> <span class='message-date'>"+create_time+" </span><span class='message-content'> <img src='"+ filepath+"' class='imgchat' style='height: 100px;weight:100px'/>"+text+"</span> </div> </div>");
+            if(photo){
+                 $(".chat-discussion").append("<div class='chat-message left'> <img class='message-avatar' src="+ avatar_url +" alt='' > <div class='message'><a class='message-author' > "+Username+"</a> <span class='message-date'>"+create_time+" </span><span class='message-content'> <img src='"+ photo+"' class='imgchat' style='height: 100px;weight:100px'/>"+text+"</span> </div> </div>");
                $(".img").attr("src",'');
             }
                 else{
@@ -241,7 +247,8 @@
               //清空聊天框
               $('.enter').val('');
               //向后端发送聊天内容
-              socket.emit('text', {'text': Texttext, 'chatroom':'chatroom'});
+              socket.emit('text', {'text': Texttext, 'chatroom':'chatroom', 'photo':binaryString});
+              binaryString="";
           }
       });
     $('#Emoji').change(function() {
@@ -266,9 +273,23 @@
 
             /* 获取 文件的路径 ，用于测试*/
  $("#file").change(function(){
+                 var _name, _fileName, personsFile;
+                personsFile = document.getElementById("file");
+                _name = personsFile.value;
+                _fileName = _name.substring(_name.lastIndexOf(".") + 1).toLowerCase();
+                if (_fileName !== "jpg") {
+                    alert("上传图片格式不为jpg，请重新上传");
+                }
+                else{
              $(".img").attr("src",URL.createObjectURL($(this)[0].files[0]));
-             filepath = URL.createObjectURL($(this)[0].files[0]);
-      console.log(URL.createObjectURL($(this)[0].files[0]))
+             var file = this.files[0];
+             reader.readAsArrayBuffer(file);
+             log("test1")
+             reader.onload = function loaded(evt) {
+                binaryString = evt.target.result;
+                log("接收照片成功")
+        }
+      console.log(URL.createObjectURL($(this)[0].files[0]))}
  })
 </script>
 
